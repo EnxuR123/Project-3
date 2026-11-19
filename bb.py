@@ -146,7 +146,6 @@ class Player:
             surface, COLOR_PLAYER, (x, y), CELL_SIZE // 3
         )
 
-        # White line shows which way you are looking.
         dx, dy = DIRS[self.facing]
         pygame.draw.line(
             surface, (255, 255, 255),
@@ -194,7 +193,6 @@ def spawn_items(grid, candy_percent=15):
     for cell in cells:
         cell.item = None
 
-    # Percentage of the whole map, rounded to a whole cell.
     count = min(
         len(cells),
         max(1, round(GRID_SIZE * GRID_SIZE * candy_percent / 100))
@@ -387,7 +385,6 @@ def center(position):
     )
 
 
-# Built-in pixel letters. No font or image files are needed.
 GLYPHS = {
     "A": "01110 10001 10001 11111 10001 10001 10001",
     "B": "11110 10001 10001 11110 10001 10001 11110",
@@ -556,7 +553,6 @@ def visible_cells(grid, player):
 
 
 def warning_alpha(grid, player_position, boss_position):
-    # Count actual maze steps, including turns around walls.
     path = astar(grid, player_position, boss_position)
 
     if not path and player_position != boss_position:
