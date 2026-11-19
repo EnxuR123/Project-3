@@ -1,6 +1,7 @@
 import pygame
 import random
 import heapq
+import asyncio
 from collections import defaultdict, deque
 
 pygame.init()
@@ -446,7 +447,7 @@ def pixel_text(text, y, scale=3, color=(255, 255, 255)):
         x += 6 * scale
 
 
-def start_menu(candy_percent=15):
+async def start_menu(candy_percent=15):
     presets = [5, 15, 30]
     start_button = pygame.Rect(175, 320, 450, 70)
     minus_button = pygame.Rect(180, 450, 60, 50)
@@ -527,6 +528,7 @@ def start_menu(candy_percent=15):
 
         pygame.display.flip()
         clock.tick(FPS)
+        await asyncio.sleep(0)
 
 
 def visible_cells(grid, player):
@@ -601,7 +603,7 @@ def draw_flashlight(grid, player):
                 )
 
 
-def main():
+async def main():
     font = pygame.font.Font(None, 24)
     title_font = pygame.font.Font(None, 48)
     restart_button = pygame.Rect(205, 430, 180, 45)
@@ -611,7 +613,7 @@ def main():
     candy_percent = 15
 
     while running:
-        candy_percent = start_menu(candy_percent)
+        candy_percent = await start_menu(candy_percent)
         if candy_percent is None:
             break
 
@@ -888,9 +890,10 @@ def main():
 
             pygame.display.flip()
             clock.tick(FPS)
+            await asyncio.sleep(0)
 
     pygame.quit()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
