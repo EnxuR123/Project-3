@@ -107,7 +107,6 @@ class Player:
                 self.facing = facing
                 break
 
-        # You can turn the flashlight even when movement is blocked.
         if (
             direction is None
             or self.stun_timer > 0
@@ -341,6 +340,20 @@ class Enemy:
                 else astar(grid, self.position, player_position)
             )
 
+        if self.boss:
+            if player_position != getattr(self, "last_player_position", None):
+                self.last_player_position = player_position
+                self.last_player_move = now
+
+            direct_path = astar(grid, self.position, player_position)
+
+            if (
+                not self.path
+                or len(direct_path) <= 3
+                or now - self.last_player_move >= 1500
+            ):
+                self.path = direct_path
+
         if now < self.next_move:
             return
 
@@ -554,18 +567,42 @@ def warning_alpha(grid, player_position, boss_position):
 
 
 def draw_flashlight(grid, player):
-    darkness = pygame.Surface(
-        (WIDTH, HEIGHT), pygame.SRCALPHA
-    )
+    visible = visible_cells(grid, player)
+    darkness = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
     darkness.fill((0, 0, 0, 255))
 
-    for x, y in visible_cells(grid, player):
+    for x, y in visible:
         darkness.fill(
             (0, 0, 0, 0),
             (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE)
         )
 
     screen.blit(darkness, (0, 0))
+
+    for x, y in visible:
+        left = x * CELL_SIZE + 2
+        top = y * CELL_SIZE + 2
+        right = (x + 1) * CELL_SIZE - 3
+        bottom = (y + 1) * CELL_SIZE - 3
+
+        corners = [
+            (left, top), (right, top),
+            (right, bottom), (left, bottom)
+        ]
+
+        for direction, wall in enumerate(grid[y][x].walls):
+            if wall:
+                color = (
+                    COLOR_CANDY
+                    if direction == player.facing
+                    else COLOR_WALL
+                )
+
+                pygame.draw.line(
+                    screen, color,
+                    corners[direction],
+                    corners[(direction + 1) % 4], 3
+                )
 
 
 def main():
@@ -705,7 +742,6 @@ def main():
             screen.fill(COLOR_BG)
 
             if generating:
-                # Do not reveal the map before the flashlight starts.
                 screen.fill((0, 0, 0))
                 pixel_text("BUILDING MAZE", 360, 4)
                 visited = sum(
@@ -781,7 +817,6 @@ def main():
                 )
                 player.draw(screen)
 
-                # Hide everything except the flashlight's visible cells.
                 draw_flashlight(grid, player)
 
             text = (
